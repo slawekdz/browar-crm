@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #111827;
+  --color-panel: #1f2937;
+  --color-panel-2: #273449;
+  --color-line: #374151;
+  --color-muted: #9ca3af;
+  --color-amber: #f59e0b;
+  --font-sans: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+}
+
+html, body, #root { height: 100%; }
+body { @apply bg-ink text-gray-100 antialiased; overscroll-behavior-y: none; }
+
+@layer components {
+  .card { @apply rounded-xl bg-panel border border-line shadow-sm; }
+  .input { @apply w-full rounded-lg bg-ink border border-line px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber/60; }
+  .btn-primary, .btn-ghost, .btn-danger { @apply inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply bg-amber text-ink hover:bg-amber-400; }
+  .btn-ghost { @apply bg-transparent text-gray-200 hover:bg-panel-2 border border-line; }
+  .btn-danger { @apply bg-red-600/80 text-white hover:bg-red-500; }
+  .label { @apply block text-xs uppercase tracking-wide text-muted mb-1; }
+  .pill { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+}
+
+.scroll-x { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
