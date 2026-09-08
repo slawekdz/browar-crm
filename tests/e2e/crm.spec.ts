@@ -58,7 +58,7 @@ test("company page lists deal history and products page shows prices", async ({ 
   await page.getByPlaceholder("Nazwa, NIP, e-mail, telefon").fill("Hard Rock");
   await page.getByRole("link", { name: /Hard Rock Pub/ }).click();
   await expect(page.getByRole("heading", { name: /Hard Rock Pub/ })).toBeVisible();
-  await expect(page.getByText("Historia dealów")).toBeVisible();
+  await page.getByRole("button", { name: /^Deale \(/ }).click();
   await expect(page.getByRole("link", { name: /Deal #3899/ })).toBeVisible();
   await page.goto("/#/products");
   await expect(page.getByText("Hills Pils", { exact: true })).toBeVisible();

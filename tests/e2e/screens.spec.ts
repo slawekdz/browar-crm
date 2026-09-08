@@ -17,8 +17,10 @@ const shots = async (page: Page, suffix: string) => {
   await page.goto("/#/products");
   await page.getByText("Hills Pils", { exact: true }).waitFor();
   await page.screenshot({ path: `test-results/screens/products-${suffix}.png`, fullPage: false });
-  await page.goto("/#/companies/25");
-  await page.getByText("Historia dealów").waitFor();
+  await page.goto("/#/companies");
+  await page.getByPlaceholder("Nazwa, NIP, e-mail, telefon").fill("7951039749");
+  await page.getByRole("link", { name: /Bagatella/ }).click();
+  await page.getByText("Deal zakończony").first().waitFor();
   await page.screenshot({ path: `test-results/screens/company-${suffix}.png`, fullPage: false });
 };
 

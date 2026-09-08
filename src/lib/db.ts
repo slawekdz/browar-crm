@@ -5,6 +5,7 @@ import type {
   Contact,
   Deal,
   DealLine,
+  NewComment,
   NewCompany,
   NewContact,
   NewDeal,
@@ -53,7 +54,8 @@ export interface Repo {
   deleteProduct(id: number): Promise<void>;
   uploadProductImage(id: number, file: File): Promise<Product>;
 
-  addComment(entity: CommentEntity, entityId: number, body: string): Promise<Comment>;
+  addComment(entity: CommentEntity, entityId: number, input: NewComment): Promise<Comment>;
+  updateComment(id: number, patch: Partial<Pick<Comment, "body" | "completed" | "pinned" | "deadline">>): Promise<Comment>;
   deleteComment(id: number): Promise<void>;
 }
 

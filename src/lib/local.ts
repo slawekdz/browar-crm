@@ -9,6 +9,7 @@ import type {
   Contact,
   Deal,
   DealLine,
+  NewComment,
   NewCompany,
   NewContact,
   NewDeal,
@@ -44,14 +45,14 @@ export class LocalRepo implements Repo {
 
   async load(): Promise<Snapshot> {
     const stored = safeRead();
-    if (stored) {
-      this.data = stored;
-      return stored;
+    if (stored) this.data = stored;
+    else {
+      const response = await fetch(this.snapshotUrl);
+      if (!response.ok) throw new Error(`snapshot fetch failed: ${response.status}`);
+      this.data = (await response.json()) as Snapshot;
     }
-    const response = await fetch(this.snapshotUrl);
-    if (!response.ok) throw new Error(`snapshot fetch failed: ${response.status}`);
-    this.data = (await response.json()) as Snapshot;
-    return this.data;
+    // The store keeps its own copy: this adapter mutates its arrays in place, and sharing them would double every insert.
+    return structuredClone(this.data);
   }
 
   imageUrl(path: string | null): string | null {
@@ -221,9 +222,17 @@ export class LocalRepo implements Repo {
     return row;
   }
 
-  async addComment(entity: CommentEntity, entityId: number, body: string): Promise<Comment> {
-    const row: Comment = { id: nextId(this.db.comments), entity_type: entity, entity_id: entityId, kind: "comment", author_id: CURRENT_USER_ID, body, deadline: null, completed: false, created_at: nowIso(), files: [] };
+  async addComment(entity: CommentEntity, entityId: number, input: NewComment): Promise<Comment> {
+    const row: Comment = { id: nextId(this.db.comments), entity_type: entity, entity_id: entityId, kind: input.kind, author_id: CURRENT_USER_ID, body: input.body, deadline: input.deadline, completed: false, pinned: false, created_at: nowIso(), files: [] };
     this.db.comments.push(row);
+    this.persist();
+    return row;
+  }
+
+  async updateComment(id: number, patch: Partial<Pick<Comment, "body" | "completed" | "pinned" | "deadline">>): Promise<Comment> {
+    const row = this.db.comments.find((c) => c.id === id);
+    if (!row) throw new Error("comment not found");
+    Object.assign(row, patch);
     this.persist();
     return row;
   }

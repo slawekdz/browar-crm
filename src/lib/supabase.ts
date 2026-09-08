@@ -10,6 +10,7 @@ import type {
   Contact,
   Deal,
   DealLine,
+  NewComment,
   NewCompany,
   NewContact,
   NewDeal,
@@ -204,8 +205,14 @@ export class SupabaseRepo implements Repo {
     return this.updateProduct(id, { image_path: path });
   }
 
-  async addComment(entity: CommentEntity, entityId: number, body: string): Promise<Comment> {
-    return unwrap(await this.client.from("comments").insert({ entity_type: entity, entity_id: entityId, kind: "comment", author_id: CURRENT_USER_ID, body }).select().single());
+  async addComment(entity: CommentEntity, entityId: number, input: NewComment): Promise<Comment> {
+    return unwrap(
+      await this.client.from("comments").insert({ entity_type: entity, entity_id: entityId, kind: input.kind, author_id: CURRENT_USER_ID, body: input.body, deadline: input.deadline }).select().single(),
+    );
+  }
+
+  async updateComment(id: number, patch: Partial<Pick<Comment, "body" | "completed" | "pinned" | "deadline">>): Promise<Comment> {
+    return unwrap(await this.client.from("comments").update(patch).eq("id", id).select().single());
   }
 
   async deleteComment(id: number): Promise<void> {

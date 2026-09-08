@@ -108,9 +108,11 @@ create table if not exists comments (
   body text not null,
   deadline timestamptz,
   completed boolean not null default false,
+  pinned boolean not null default false,
   created_at timestamptz not null default now(),
   files jsonb not null default '[]'::jsonb
 );
+alter table comments add column if not exists pinned boolean not null default false;
 create index if not exists comments_entity_idx on comments(entity_type, entity_id);
 
 -- Row level security: authenticated only.

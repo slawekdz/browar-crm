@@ -106,8 +106,15 @@ export interface Comment {
   body: string;
   deadline: string | null;
   completed: boolean;
+  pinned: boolean;
   created_at: string;
   files: { name: string; url: string }[];
+}
+
+export interface NewComment {
+  kind: CommentKind;
+  body: string;
+  deadline: string | null;
 }
 
 export interface Snapshot {

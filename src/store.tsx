@@ -8,6 +8,7 @@ import type {
   Contact,
   Deal,
   DealLine,
+  NewComment,
   NewCompany,
   NewContact,
   NewDeal,
@@ -49,7 +50,8 @@ interface Store {
   updateProduct(id: number, patch: Partial<Omit<Product, "id">>): Promise<void>;
   deleteProduct(id: number): Promise<void>;
   uploadProductImage(id: number, file: File): Promise<void>;
-  addComment(entity: CommentEntity, id: number, body: string): Promise<void>;
+  addComment(entity: CommentEntity, id: number, input: NewComment): Promise<void>;
+  updateComment(id: number, patch: Partial<Pick<Comment, "body" | "completed" | "pinned" | "deadline">>): Promise<void>;
   deleteComment(id: number): Promise<void>;
 }
 
@@ -192,9 +194,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const row = await repo.uploadProductImage(id, file);
         patch((s) => ({ ...s, products: replaceIn(s.products, row) }));
       },
-      async addComment(entity, id, body) {
-        const row = await repo.addComment(entity, id, body);
+      async addComment(entity, id, input) {
+        const row = await repo.addComment(entity, id, input);
         patch((s) => ({ ...s, comments: [...s.comments, row] }));
+      },
+      async updateComment(id, p) {
+        const row = await repo.updateComment(id, p);
+        patch((s) => ({ ...s, comments: replaceIn(s.comments, row) }));
       },
       async deleteComment(id) {
         await repo.deleteComment(id);

@@ -36,7 +36,7 @@ export default function Timeline({ entity, entityId, history = [] }: { entity: C
     if (!body.trim()) return;
     setBusy(true);
     try {
-      await addComment(entity, entityId, body.trim());
+      await addComment(entity, entityId, { kind: "comment", body: body.trim(), deadline: null });
       setBody("");
     } finally {
       setBusy(false);

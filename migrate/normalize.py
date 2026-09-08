@@ -284,6 +284,7 @@ def main() -> None:
                     "body": strip_bb(c.get("COMMENT") or ""),
                     "deadline": None,
                     "completed": False,
+                    "pinned": False,
                     "created_at": iso(c["CREATED"]),
                     "files": [{"name": f.get("name") or f.get("NAME") or "plik", "url": f.get("urlDownload") or f.get("url") or ""} for f in (c.get("FILES") or {}).values()] if isinstance(c.get("FILES"), dict) else [],
                 })
@@ -305,6 +306,7 @@ def main() -> None:
             "body": body,
             "deadline": iso(a.get("DEADLINE")),
             "completed": a.get("COMPLETED") == "Y",
+            "pinned": False,
             "created_at": iso(a["CREATED"]),
             "files": [],
         })
