@@ -27,9 +27,17 @@ test("deal page shows lines, timeline and stage history and moves stage", async 
   await page.goto("/#/deals/4031");
   await expect(page.getByRole("heading", { name: "Deal #4031" })).toBeVisible();
   await expect(page.getByText("4720,00 zł").first()).toBeVisible();
-  await expect(page.getByText("Etap:").first()).toBeVisible();
-  await page.getByLabel("Etap").selectOption("UC_P9ISM8");
-  await expect(page.getByText("Etap: Dostarczone").first()).toBeVisible();
+  await expect(page.getByText("Deal utworzony")).toBeVisible();
+  await expect(page.getByText("Delta Hydro Sp. z o.o.")).toBeVisible();
+  // same stages as the board, as chevrons on top of the card
+  const bar = page.getByRole("group", { name: "Etapy dealu" });
+  for (const name of ["Zamówienie", "Próbki", "Do dostarczenia", "Dostarczone", "Faktura", "Zamknij deal"]) await expect(bar.getByRole("button", { name })).toBeVisible();
+  await bar.getByRole("button", { name: "Dostarczone" }).click();
+  await expect(page.getByText("Zmiana etapu").first()).toBeVisible();
+  await expect(page.locator("article", { hasText: "Zmiana etapu" }).first()).toContainText("Dostarczone");
+  await bar.getByRole("button", { name: "Zamknij deal" }).click();
+  await expect(page.getByRole("button", { name: "Zamknięty Wygrany" })).toBeVisible();
+  await page.getByRole("button", { name: "Anuluj" }).click();
   await page.goto("/#/");
   await expect(page.getByRole("region", { name: "Dostarczone" })).toContainText("Deal #4031");
 });
@@ -47,7 +55,7 @@ test("creates a deal with catalog lines and it lands on the board", async ({ pag
   await expect(page.getByText("Razem: 141,60 zł")).toBeVisible();
   await page.getByRole("button", { name: "Utwórz deal" }).click();
   await expect(page.getByRole("heading", { name: "Deal #4032" })).toBeVisible();
-  await expect(page.getByText("powtarzalny")).toBeVisible();
+  await expect(page.getByText("Domyślny lejek (Powtarzalny deal)")).toBeVisible();
   await page.goto("/#/");
   await expect(page.getByRole("region", { name: "Zamówienie" })).toContainText("Deal #4032");
 });

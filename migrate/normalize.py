@@ -123,8 +123,9 @@ def shrink(source: Path, target: Path) -> str:
 
 def strip_bb(text: str) -> str:
     text = re.sub(r"\[USER=\d+\](.*?)\[/USER\]", r"@\1", text)
-    text = re.sub(r"\[/?(B|I|U|URL[^\]]*|QUOTE|CODE|COLOR[^\]]*|SIZE[^\]]*)\]", "", text, flags=re.I)
-    return text.strip()
+    text = re.sub(r"\[/?(B|I|U|P|URL[^\]]*|QUOTE|CODE|COLOR[^\]]*|SIZE[^\]]*)\]", "", text, flags=re.I)
+    text = re.sub(r"\[br\]", "\n", text, flags=re.I)
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def main() -> None:
