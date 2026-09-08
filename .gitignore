@@ -23,3 +23,7 @@ android/build.log
 
 assets/
 
+
+# internal analysis material (recording frames carry customer data)
+docs/
+

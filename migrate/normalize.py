@@ -21,15 +21,16 @@ OUT = ROOT / "public" / "snapshot.json"
 IMG_OUT = ROOT / "public" / "product_images"
 SITE_IMAGES = Path.home() / "Downloads" / "browarpogorza" / "images"
 
+# Column colours as they appear on the Bitrix board (read off the owner's recording).
 STAGE_COLORS = {
-    "NEW": "#38bdf8",
-    "UC_X5KJAY": "#22d3ee",
-    "UC_UOUQ17": "#2dd4bf",
-    "UC_P9ISM8": "#34d399",
-    "PREPAYMENT_INVOICE": "#fbbf24",
-    "WON": "#4ade80",
-    "LOSE": "#f87171",
-    "APOLOGY": "#fb923c",
+    "NEW": "#3c7fd9",
+    "UC_X5KJAY": "#4fd1e0",
+    "UC_UOUQ17": "#38d0e0",
+    "UC_P9ISM8": "#2eb5f2",
+    "PREPAYMENT_INVOICE": "#f5a623",
+    "WON": "#7cd44a",
+    "LOSE": "#f0455a",
+    "APOLOGY": "#f0455a",
 }
 # crm.dealcategory.stage.list does not return SEMANTICS; Bitrix fixes the meaning by code.
 SEMANTIC_BY_CODE = {"WON": "won", "LOSE": "lost", "APOLOGY": "lost"}
@@ -44,7 +45,7 @@ GROUP_RULES = [
 
 
 def load(name: str):
-    return json.loads((SRC / f"{name}.json").read_text(encoding="utf-8"))
+    return json.loads((SRC / f"{name}.json").read_text(encoding="utf-8-sig"))
 
 
 def iso(value: str | None) -> str | None:

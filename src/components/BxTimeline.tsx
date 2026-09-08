@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { Link } from "react-router-dom";
 import type { Comment, CommentEntity } from "@/types";
+import { RecordLink } from "@/lib/nav";
 import { useData } from "@/store";
 import { formatDateTime, today } from "@/lib/dates";
 
@@ -27,7 +27,9 @@ type Entry = { key: string; at: string; type: "comment"; comment: Comment } | { 
 const PAGE = 30;
 const dayKey = (iso: string): string => iso.slice(0, 10);
 const timeOf = (iso: string): string => new Date(iso).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+const isToday = (day: string): boolean => day === new Date().toISOString().slice(0, 10) || day === dayKey(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString());
 const dayLabel = (day: string): string => {
+  if (isToday(day)) return "Dzisiaj";
   const d = new Date(`${day}T00:00:00`);
   const sameYear = d.getFullYear() === new Date().getFullYear();
   return d.toLocaleDateString("pl-PL", sameYear ? { day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" }) + (sameYear ? "" : " r.");
@@ -219,10 +221,10 @@ export default function BxTimeline({ entity, entityId, events, taskHint }: { ent
             )}
             {e.link && (
               <span>
-                Deal{" "}
-                <Link to={e.link.to} className="text-[#0b66c3] hover:underline">
+                {e.link.to.startsWith("/deals") ? "Deal " : ""}
+                <RecordLink to={e.link.to} className="text-[#0b66c3] hover:underline">
                   {e.link.label}
-                </Link>
+                </RecordLink>
                 {e.suffix && <span className="text-gray-500"> · {e.suffix}</span>}
               </span>
             )}
@@ -246,16 +248,23 @@ export default function BxTimeline({ entity, entityId, events, taskHint }: { ent
             </button>
           </div>
           <div className="mt-3 flex flex-col sm:flex-row gap-2">
-            <textarea
-              className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2fc6f6]"
-              rows={composer === "task" ? 1 : 3}
-              placeholder={composer === "task" ? "Do zrobienia" : "Komentarz"}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              aria-label={composer === "task" ? "Do zrobienia" : "Komentarz"}
-              data-composer
-            />
-            {composer === "task" && <input type="date" className="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900" value={deadline} onChange={(e) => setDeadline(e.target.value)} aria-label="Termin" />}
+            <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-300 px-4 py-1 focus-within:ring-2 focus-within:ring-[#2fc6f6]">
+              <textarea
+                className="flex-1 resize-none bg-transparent py-2 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                rows={draft.includes("\n") || draft.length > 60 ? 3 : 1}
+                placeholder={composer === "task" ? "Do zrobienia" : "Zostaw komentarz"}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                aria-label={composer === "task" ? "Do zrobienia" : "Komentarz"}
+                data-composer
+              />
+              {composer === "task" && (
+                <label className="flex shrink-0 items-center gap-1 text-xs text-gray-500" title="Termin">
+                  akcje ▾
+                  <input type="date" className="w-32 rounded border border-gray-200 px-1 py-0.5 text-xs text-gray-700" value={deadline} onChange={(e) => setDeadline(e.target.value)} aria-label="Termin" />
+                </label>
+              )}
+            </div>
             <button type="submit" className="rounded-xl bg-[#2fc6f6] px-4 py-2 text-sm font-medium text-white disabled:opacity-40" disabled={!draft.trim()}>
               {composer === "task" ? "Zaplanuj" : "Wyślij"}
             </button>
@@ -287,7 +296,7 @@ export default function BxTimeline({ entity, entityId, events, taskHint }: { ent
       {grouped.map((group) => (
         <div key={group.day} className="space-y-4">
           <div className="flex justify-center">
-            <span className="rounded-full bg-gray-200 px-4 py-1 text-xs font-medium text-gray-600">{dayLabel(group.day)}</span>
+            <span className={`rounded-full px-4 py-1 text-xs font-medium ${isToday(group.day) ? "bg-[#2fc6f6] text-white" : "bg-gray-200 text-gray-600"}`}>{dayLabel(group.day)}</span>
           </div>
           {group.items.map((e) => (e.type === "comment" ? commentCard(e.comment) : eventCard(e.event)))}
         </div>

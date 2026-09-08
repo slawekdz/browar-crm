@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SECRETS_PATH = ROOT / "migrate" / ".secrets.json"
-SECRETS = json.loads(SECRETS_PATH.read_text(encoding="utf-8"))
+SECRETS = json.loads(SECRETS_PATH.read_text(encoding="utf-8-sig"))
 REF = SECRETS.get("project_ref", "gdcwwszcgddhcevkbhko")
 API = "https://api.supabase.com/v1"
 

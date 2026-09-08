@@ -1,9 +1,9 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
 import type { Contact, NewContact } from "@/types";
 import { useData } from "@/store";
-import { Field, Modal, SearchInput, Toast, matches } from "@/components/ui";
+import { Field, Modal, Toast, matches } from "@/components/ui";
 import { CompanyPicker } from "@/components/Pickers";
+import { RecordLink } from "@/lib/nav";
 
 export const emptyContact = (): NewContact => ({ first_name: "", last_name: null, phone: null, email: null, position: null, company_id: null });
 const nullable = (v: string): string | null => v.trim() || null;
@@ -44,7 +44,7 @@ export function ContactForm({ open, onClose, initial, onSubmit }: { open: boolea
         <Field label="Firma">
           <CompanyPicker value={values.company_id} onChange={(id) => setValues((v) => ({ ...v, company_id: id }))} />
         </Field>
-        {error && <div className="text-sm text-red-400">{error}</div>}
+        {error && <div className="text-sm text-danger">{error}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>
             Anuluj
@@ -76,44 +76,68 @@ export default function Contacts() {
     }
   };
   return (
-    <div className="mx-auto max-w-5xl p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold mr-auto">Kontakty</h1>
-        <button type="button" className="btn-primary" onClick={() => setEditing("new")}>
-          + Kontakt
-        </button>
+    <div className="flex h-full flex-col">
+      <div className="shrink-0 px-4 pt-3 pb-2 text-white space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-semibold mr-1">Kontakty</h1>
+          <button type="button" className="btn-success py-1.5" onClick={() => setEditing("new")}>
+            + Utwórz
+          </button>
+          <div className="flex-1 min-w-56 flex items-center rounded-lg bg-white/15 px-3 py-1 backdrop-blur focus-within:bg-white/25">
+            <input className="min-w-0 flex-1 bg-transparent py-1 text-sm placeholder:text-white/70 focus:outline-none" placeholder="Filtruj i szukaj" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Imię, nazwisko, telefon, firma" />
+          </div>
+        </div>
       </div>
-      <SearchInput value={q} onChange={setQ} placeholder="Imię, nazwisko, telefon, firma" />
-      <ul className="divide-y divide-line card">
-        {list.map((c) => (
-          <li key={c.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <div className="font-medium">
-                {c.first_name} {c.last_name ?? ""}
-                {c.position && <span className="text-muted font-normal"> · {c.position}</span>}
-              </div>
-              <div className="truncate text-xs text-muted">
-                {[c.phone, c.email].filter(Boolean).join(" · ")}
-                {c.company_id && (
-                  <>
-                    {" · "}
-                    <Link to={`/companies/${c.company_id}`} className="text-sky-300">
-                      {companyById.get(c.company_id)?.name}
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-            <button type="button" className="btn-ghost py-1" onClick={() => setEditing(c)}>
-              Edytuj
-            </button>
-            <button type="button" className="text-muted hover:text-red-400" onClick={() => remove(c)} aria-label="Usuń">
-              ✕
-            </button>
-          </li>
-        ))}
-        {list.length === 0 && <li className="px-4 py-6 text-sm text-muted text-center">Brak kontaktów</li>}
-      </ul>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
+          <table className="w-full min-w-[700px]">
+            <thead className="sticky top-0 bg-white border-b border-line">
+              <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-2">Kontakt</th>
+                <th className="px-3 py-2">Stanowisko</th>
+                <th className="px-3 py-2">Telefon</th>
+                <th className="px-3 py-2">E-mail</th>
+                <th className="px-3 py-2">Firma</th>
+                <th className="px-3 py-2" />
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((c) => (
+                <tr key={c.id} className="border-b border-line/70 hover:bg-gray-50">
+                  <td className="px-4 py-2.5 font-medium">
+                    {c.first_name} {c.last_name ?? ""}
+                  </td>
+                  <td className="px-3 py-2.5 text-gray-600">{c.position ?? ""}</td>
+                  <td className="px-3 py-2.5">{c.phone && <a className="link" href={`tel:${c.phone}`}>{c.phone}</a>}</td>
+                  <td className="px-3 py-2.5">{c.email && <a className="link" href={`mailto:${c.email}`}>{c.email}</a>}</td>
+                  <td className="px-3 py-2.5">
+                    {c.company_id && (
+                      <RecordLink to={`/companies/${c.company_id}`} className="link">
+                        {companyById.get(c.company_id)?.name}
+                      </RecordLink>
+                    )}
+                  </td>
+                  <td className="px-3 py-2.5 text-right whitespace-nowrap">
+                    <button type="button" className="text-gray-500 hover:text-link mr-3" onClick={() => setEditing(c)}>
+                      Edytuj
+                    </button>
+                    <button type="button" className="text-gray-400 hover:text-danger" onClick={() => remove(c)} aria-label="Usuń">
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {list.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                    Brak kontaktów
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
       {editing && (
         <ContactForm
           open

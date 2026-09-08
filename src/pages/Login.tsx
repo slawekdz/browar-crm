@@ -23,7 +23,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-full items-center justify-center p-6">
+    <div className="flex h-full items-center justify-center p-6 wallpaper">
       <form onSubmit={submit} className="card w-full max-w-sm p-6 space-y-4">
         <div>
           <h1 className="text-lg font-semibold">Browar Pogórza CRM</h1>
@@ -35,7 +35,7 @@ export default function Login() {
         <Field label="Hasło">
           <input className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required={repo.mode !== "local"} />
         </Field>
-        {error && <div className="text-sm text-red-400">{error}</div>}
+        {error && <div className="text-sm text-danger">{error}</div>}
         <button type="submit" className="btn-primary w-full" disabled={busy}>
           {busy ? "Logowanie…" : "Zaloguj"}
         </button>

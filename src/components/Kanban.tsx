@@ -1,45 +1,38 @@
-import { useMemo, useState } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  TouchSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DndContext, DragOverlay, PointerSensor, TouchSensor, useDroppable, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Deal, Stage } from "@/types";
 import DealCard, { DealCardBody } from "./DealCard";
 import { formatPlnShort } from "@/lib/money";
 
+/*
+ * Bitrix kanban: columns fill the viewport (min 180 px), each scrolls vertically on its own,
+ * the board scrolls horizontally with edge chevron buttons; header pill in the stage colour,
+ * dark sum pill, "+ Szybki deal" in the first column and a "+" elsewhere.
+ */
 const PAGE = 60;
 
-function Column({ stage, deals, onAdd }: { stage: Stage; deals: Deal[]; onAdd?: (stage: Stage) => void }) {
+function Column({ stage, deals, first, onAdd }: { stage: Stage; deals: Deal[]; first: boolean; onAdd?: (stage: Stage) => void }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.code });
   const [limit, setLimit] = useState(PAGE);
   const total = deals.reduce((sum, d) => sum + d.amount, 0);
   return (
-    <section className="flex w-72 shrink-0 flex-col snap-start" aria-label={stage.name}>
-      <header className="rounded-t-xl px-3 py-2 text-sm font-semibold text-ink" style={{ background: stage.color }}>
-        <div className="flex items-center justify-between">
-          <span>{stage.name}</span>
-          <span className="rounded-full bg-black/15 px-2 text-xs">{deals.length}</span>
-        </div>
+    <section className="group flex min-w-[250px] sm:min-w-[180px] flex-1 basis-0 flex-col snap-start border-r border-dotted border-white/25 px-1.5 last:border-r-0" aria-label={stage.name}>
+      <header className="flex h-[34px] items-center justify-between rounded-full px-3 text-[13px] font-bold text-white" style={{ background: stage.color }} title={stage.name}>
+        <span className="truncate">{stage.name}</span>
+        <span className="ml-2 shrink-0 font-normal text-white/85">{deals.length}</span>
       </header>
-      <div className="bg-panel/60 px-3 py-1.5 text-center text-xs font-medium text-gray-200 border-x border-line">{formatPlnShort(total)}</div>
-      <div ref={setNodeRef} className={`flex-1 space-y-2 rounded-b-xl border border-t-0 border-line p-2 min-h-40 ${isOver ? "bg-amber/10" : "bg-ink/40"}`}>
-        {onAdd && (
-          <button type="button" className="btn-ghost w-full py-1.5 text-xs" onClick={() => onAdd(stage)}>
-            + Deal
-          </button>
-        )}
+      <div className="mx-auto mt-1.5 rounded-full bg-black/35 px-3 py-0.5 text-center text-[12px] font-medium text-white">{formatPlnShort(total)}</div>
+      {onAdd && (
+        <button type="button" className={`mt-1.5 rounded-full text-[12px] text-white/90 transition ${first ? "w-full bg-white/15 py-1 hover:bg-white/25" : "w-full py-1 hover:bg-white/15 group-hover:bg-white/10"}`} onClick={() => onAdd(stage)}>
+          {first ? "+ Szybki deal" : "+"}
+        </button>
+      )}
+      <div ref={setNodeRef} className={`scroll-thin mt-1.5 flex-1 space-y-2 overflow-y-auto rounded-lg pr-0.5 pb-2 ${isOver ? "bg-white/15" : ""}`}>
         {deals.slice(0, limit).map((deal) => (
           <DealCard key={deal.id} deal={deal} />
         ))}
         {deals.length > limit && (
-          <button type="button" className="btn-ghost w-full text-xs" onClick={() => setLimit((l) => l + PAGE)}>
+          <button type="button" className="w-full rounded-md bg-white/15 py-1 text-xs text-white hover:bg-white/25" onClick={() => setLimit((l) => l + PAGE)}>
             Pokaż więcej ({deals.length - limit})
           </button>
         )}
@@ -51,7 +44,7 @@ function Column({ stage, deals, onAdd }: { stage: Stage; deals: Deal[]; onAdd?: 
 function DropZone({ stage }: { stage: Stage }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.code });
   return (
-    <div ref={setNodeRef} className={`flex-1 rounded-xl border-2 border-dashed px-3 py-3 text-center text-sm font-medium transition ${isOver ? "scale-[1.02]" : ""}`} style={{ borderColor: stage.color, color: stage.color, background: isOver ? `${stage.color}22` : undefined }}>
+    <div ref={setNodeRef} className={`flex-1 rounded-xl border-2 border-dashed px-3 py-3 text-center text-sm font-medium transition ${isOver ? "scale-[1.02]" : ""}`} style={{ borderColor: stage.color, color: "white", background: isOver ? stage.color : `${stage.color}55` }}>
       {stage.name}
     </div>
   );
@@ -59,10 +52,9 @@ function DropZone({ stage }: { stage: Stage }) {
 
 export default function Kanban({ stages, closingStages, deals, onMove, onAdd }: { stages: Stage[]; closingStages: Stage[]; deals: Deal[]; onMove: (dealId: number, stageCode: string) => void; onAdd?: (stage: Stage) => void }) {
   const [active, setActive] = useState<Deal | null>(null);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
-  );
+  const scroller = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }));
   const byStage = useMemo(() => {
     const map = new Map<string, Deal[]>();
     for (const stage of stages) map.set(stage.code, []);
@@ -70,6 +62,17 @@ export default function Kanban({ stages, closingStages, deals, onMove, onAdd }: 
     for (const list of map.values()) list.sort((a, b) => (b.moved_at ?? b.created_at).localeCompare(a.moved_at ?? a.created_at));
     return map;
   }, [stages, deals]);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const update = () => setEdges({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+    update();
+    el.addEventListener("scroll", update);
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => (el.removeEventListener("scroll", update), ro.disconnect());
+  }, [stages.length]);
 
   const onDragStart = (e: DragStartEvent) => setActive((e.active.data.current as { deal: Deal }).deal);
   const onDragEnd = (e: DragEndEvent) => {
@@ -79,22 +82,35 @@ export default function Kanban({ stages, closingStages, deals, onMove, onAdd }: 
     if (!deal || typeof target !== "string" || target === deal.stage_code) return;
     onMove(deal.id, target);
   };
+  const closingHidden = closingStages.filter((s) => !stages.some((x) => x.code === s.code));
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setActive(null)}>
-      <div className="scroll-x flex gap-3 overflow-x-auto snap-x px-4 pb-4">
-        {stages.map((stage) => (
-          <Column key={stage.code} stage={stage} deals={byStage.get(stage.code) ?? []} onAdd={onAdd} />
-        ))}
-      </div>
-      {active && closingStages.length > 0 && (
-        <div className="sticky bottom-0 z-30 flex gap-2 border-t border-line bg-panel/95 px-4 py-3 backdrop-blur">
-          {closingStages.map((stage) => (
-            <DropZone key={stage.code} stage={stage} />
+      <div className="relative flex h-full min-h-0 flex-col">
+        {edges.left && (
+          <button type="button" className="absolute left-2 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: -400, behavior: "smooth" })} aria-label="Przewiń w lewo">
+            ‹
+          </button>
+        )}
+        {edges.right && (
+          <button type="button" className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: 400, behavior: "smooth" })} aria-label="Przewiń w prawo">
+            ›
+          </button>
+        )}
+        <div ref={scroller} className="scroll-x flex min-h-0 flex-1 snap-x overflow-x-auto px-2 pb-2">
+          {stages.map((stage, i) => (
+            <Column key={stage.code} stage={stage} deals={byStage.get(stage.code) ?? []} first={i === 0} onAdd={onAdd} />
           ))}
         </div>
-      )}
-      <DragOverlay dropAnimation={null}>{active ? <div className="w-72"><DealCardBody deal={active} dragging /></div> : null}</DragOverlay>
+        {active && closingHidden.length > 0 && (
+          <div className="sticky bottom-0 z-30 flex gap-2 bg-indigo/80 px-4 py-3 backdrop-blur">
+            {closingHidden.map((stage) => (
+              <DropZone key={stage.code} stage={stage} />
+            ))}
+          </div>
+        )}
+      </div>
+      <DragOverlay dropAnimation={null}>{active ? <div className="w-56"><DealCardBody deal={active} dragging /></div> : null}</DragOverlay>
     </DndContext>
   );
 }

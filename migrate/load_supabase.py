@@ -24,10 +24,10 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SECRETS = json.loads((ROOT / "migrate" / ".secrets.json").read_text(encoding="utf-8"))
+SECRETS = json.loads((ROOT / "migrate" / ".secrets.json").read_text(encoding="utf-8-sig"))
 URL = SECRETS["url"].rstrip("/")
 KEY = SECRETS["service_role"]
-SNAPSHOT = json.loads((ROOT / "public" / "snapshot.json").read_text(encoding="utf-8"))
+SNAPSHOT = json.loads((ROOT / "public" / "snapshot.json").read_text(encoding="utf-8-sig"))
 IMAGES = ROOT / "public" / "product_images"
 
 TABLE_ORDER = ["stages", "people", "companies", "contacts", "products", "deals", "deal_lines", "stage_history", "comments"]

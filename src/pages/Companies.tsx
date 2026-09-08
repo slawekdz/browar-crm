@@ -1,9 +1,10 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import type { Company, NewCompany } from "@/types";
 import { useData } from "@/store";
-import { Field, Modal, Money, SearchInput, Toast, matches } from "@/components/ui";
+import { Field, Modal, Money, Toast, matches } from "@/components/ui";
+import { RecordLink, useOpenRecord } from "@/lib/nav";
 import { CURRENT_USER_ID } from "@/lib/db";
+import { formatNumeric } from "@/lib/dates";
 
 export const emptyCompany = (): NewCompany => ({ name: "", nip: null, email: null, phone: null, address: null, company_type: "CUSTOMER", comment: null, owner_id: CURRENT_USER_ID });
 
@@ -61,7 +62,7 @@ export function CompanyForm({ open, onClose, initial, onSubmit }: { open: boolea
         <Field label="Notatka">
           <textarea className="input" rows={2} value={values.comment ?? ""} onChange={set("comment")} />
         </Field>
-        {error && <div className="text-sm text-red-400">{error}</div>}
+        {error && <div className="text-sm text-danger">{error}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>
             Anuluj
@@ -76,8 +77,8 @@ export function CompanyForm({ open, onClose, initial, onSubmit }: { open: boolea
 }
 
 export default function Companies() {
-  const { data, createCompany } = useData();
-  const navigate = useNavigate();
+  const { data, createCompany, personName } = useData();
+  const openRecord = useOpenRecord();
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,42 +98,70 @@ export default function Companies() {
   }, [data.deals]);
 
   const list = useMemo(
-    () =>
-      data.companies
-        .filter((c) => matches(q, c.name, c.nip, c.email, c.phone, c.address))
-        .sort((a, b) => (stats.get(b.id)?.last ?? "").localeCompare(stats.get(a.id)?.last ?? "") || a.name.localeCompare(b.name, "pl")),
+    () => data.companies.filter((c) => matches(q, c.name, c.nip, c.email, c.phone, c.address)).sort((a, b) => (stats.get(b.id)?.last ?? "").localeCompare(stats.get(a.id)?.last ?? "") || a.name.localeCompare(b.name, "pl")),
     [data.companies, q, stats],
   );
 
   return (
-    <div className="mx-auto max-w-5xl p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold mr-auto">Firmy</h1>
-        <button type="button" className="btn-primary" onClick={() => setAdding(true)}>
-          + Firma
-        </button>
+    <div className="flex h-full flex-col">
+      <div className="shrink-0 px-4 pt-3 pb-2 text-white space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-semibold mr-1">Firmy</h1>
+          <button type="button" className="btn-success py-1.5" onClick={() => setAdding(true)}>
+            + Utwórz
+          </button>
+          <div className="flex-1 min-w-56 flex items-center rounded-lg bg-white/15 px-3 py-1 backdrop-blur focus-within:bg-white/25">
+            <input className="min-w-0 flex-1 bg-transparent py-1 text-sm placeholder:text-white/70 focus:outline-none" placeholder="Filtruj i szukaj" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Nazwa, NIP, e-mail, telefon" />
+          </div>
+        </div>
+        <div className="text-xs text-white/80">{list.length} firm</div>
       </div>
-      <SearchInput value={q} onChange={setQ} placeholder="Nazwa, NIP, e-mail, telefon" />
-      <div className="text-xs text-muted">{list.length} firm</div>
-      <ul className="divide-y divide-line card">
-        {list.map((c) => {
-          const s = stats.get(c.id);
-          return (
-            <li key={c.id}>
-              <Link to={`/companies/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-panel-2">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{c.name}</div>
-                  <div className="truncate text-xs text-muted">{[c.nip && `NIP ${c.nip}`, c.email, c.phone].filter(Boolean).join(" · ")}</div>
-                </div>
-                <div className="text-right text-xs text-muted">
-                  <div>{s ? `${s.count} dealów` : "brak dealów"}</div>
-                  {s && s.won > 0 && <Money value={s.won} className="text-gray-200" />}
-                </div>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+        <div className="rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
+          <table className="w-full min-w-[760px]">
+            <thead className="sticky top-0 bg-white border-b border-line">
+              <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                <th className="px-4 py-2">Firma</th>
+                <th className="px-3 py-2">NIP</th>
+                <th className="px-3 py-2">E-mail</th>
+                <th className="px-3 py-2">Telefon</th>
+                <th className="px-3 py-2 text-right">Deale</th>
+                <th className="px-3 py-2 text-right">Wygrane</th>
+                <th className="px-3 py-2">Ostatni deal</th>
+                <th className="px-3 py-2">Odpowiedzialny</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((c) => {
+                const s = stats.get(c.id);
+                return (
+                  <tr key={c.id} className="border-b border-line/70 hover:bg-gray-50 cursor-pointer" onClick={() => openRecord(`/companies/${c.id}`)}>
+                    <td className="px-4 py-2.5">
+                      <RecordLink to={`/companies/${c.id}`} className="link font-medium" onClick={(e) => e.stopPropagation()}>
+                        {c.name}
+                      </RecordLink>
+                    </td>
+                    <td className="px-3 py-2.5 text-gray-600">{c.nip ?? ""}</td>
+                    <td className="px-3 py-2.5 text-gray-600 truncate max-w-56">{c.email ?? ""}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{c.phone ?? ""}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{s?.count ?? 0}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{s && s.won > 0 ? <Money value={s.won} /> : ""}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{s ? formatNumeric(s.last) : ""}</td>
+                    <td className="px-3 py-2.5 text-gray-600">{personName(c.owner_id)}</td>
+                  </tr>
+                );
+              })}
+              {list.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    Brak firm
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
       {adding && (
         <CompanyForm
           open
@@ -140,7 +169,7 @@ export default function Companies() {
           initial={emptyCompany()}
           onSubmit={async (values) => {
             const row = await createCompany(values);
-            navigate(`/companies/${row.id}`);
+            openRecord(`/companies/${row.id}`);
           }}
         />
       )}

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-S = json.loads((Path(__file__).resolve().parent / ".secrets.json").read_text(encoding="utf-8"))
+S = json.loads((Path(__file__).resolve().parent / ".secrets.json").read_text(encoding="utf-8-sig"))
 URL = "https://slawekdz.github.io/browar-crm/"
 
 with sync_playwright() as pw:
