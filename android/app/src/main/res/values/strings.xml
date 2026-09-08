@@ -1,0 +1,8 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Browar Pogórza CRM</string>
+    <string name="title_activity_main">Browar Pogórza CRM</string>
+    <string name="package_name">pl.browarpogorza.crm</string>
+    <string name="custom_url_scheme">pl.browarpogorza.crm</string>
+</resources>
+
