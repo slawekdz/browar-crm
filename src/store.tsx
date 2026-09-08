@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Repo, AuthState } from "@/lib/db";
 import { createRepo } from "@/lib/repo";
 import type {
@@ -58,7 +58,7 @@ const StoreContext = createContext<Store | null>(null);
 const replaceIn = <T extends { id: number }>(rows: T[], row: T): T[] => rows.map((r) => (r.id === row.id ? row : r));
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const repo = useRef<Repo>(createRepo()).current;
+  const [repo] = useState<Repo>(createRepo); // lazy: one client per mount, not one per render
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [data, setData] = useState<Snapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
