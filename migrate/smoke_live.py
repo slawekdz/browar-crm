@@ -25,12 +25,12 @@ with sync_playwright() as pw:
         pg.screenshot(path=str(OUT / f"board-{name}.png"))
         pg.goto(URL + "#/deals/4031", wait_until="networkidle")
         pg.get_by_role("heading", name="Deal #4031").wait_for()
-        deal = pg.locator("main").inner_text()
+        deal = pg.locator("body").inner_text()  # the record renders as a slider outside <main>
         pg.goto(URL + "#/products", wait_until="networkidle")
         pg.get_by_text("Hills Pils", exact=True).wait_for()
         imgs = pg.evaluate("() => Array.from(document.images).filter(i => i.src.includes('storage')).map(i => [i.naturalWidth > 0, i.src.split('/').pop()])")
         pg.screenshot(path=str(OUT / f"products-{name}.png"))
         print(name, "| deals line:", next((l for l in board.splitlines() if "dealów" in l), "?"),
-              "| Faktura col has 2:", "Faktura" in board, "| deal 4031 amount ok:", "4720,00" in deal,
+              "| Faktura col has 2:", "Faktura" in board, "| deal 4031 amount ok:", "4720 zł" in deal,
               "| storage images loaded:", sum(1 for ok, _ in imgs if ok), "/", len(imgs), "| console errors:", errors[:3])
         br.close()
