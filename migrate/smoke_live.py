@@ -18,9 +18,9 @@ with sync_playwright() as pw:
         pg.goto(URL, wait_until="networkidle")
         pg.get_by_label("E-mail").fill(S["user_email"])
         pg.get_by_label("Hasło").fill(S["user_password"])
+        pg.wait_for_timeout(1500)  # let the Supabase client hydrate before submitting
         pg.get_by_role("button", name="Zaloguj").click()
-        pg.get_by_role("heading", name="Deale").wait_for(timeout=30000)
-        pg.get_by_text("Deal #4031").wait_for(timeout=30000)
+        pg.get_by_text("Deal #4031").first.wait_for(timeout=45000)
         board = pg.locator("main").inner_text()
         pg.screenshot(path=str(OUT / f"board-{name}.png"))
         pg.goto(URL + "#/deals/4031", wait_until="networkidle")

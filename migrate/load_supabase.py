@@ -71,7 +71,8 @@ def load_data() -> None:
 
 def load_images() -> None:
     for path in sorted(IMAGES.glob("*")):
-        mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        # Windows' mimetypes table lacks webp, and Storage then serves octet-stream which <img> refuses to paint.
+        mime = {".webp": "image/webp", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}.get(path.suffix.lower()) or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         status, text = request("POST", f"/storage/v1/object/products/{path.name}", path.read_bytes(), {"Content-Type": mime, "x-upsert": "true"})
         if status >= 300:
             raise SystemExit(f"upload {path.name} -> {status}: {text[:300]}")
