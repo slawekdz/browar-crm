@@ -15,7 +15,8 @@ export function Modal({ title, open, onClose, children, wide = false }: { title:
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/40 p-0 sm:p-4 fade-in" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label={title}>
-      <div className={`card w-full ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"} max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-xl`} onMouseDown={(e) => e.stopPropagation()}>
+      {/* explicit text colour: the phone shell is dark and would otherwise bleed white text onto the white card */}
+      <div className={`card w-full text-ink ${wide ? "sm:max-w-3xl" : "sm:max-w-lg"} max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-xl`} style={{ color: "#333333" }} onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-line px-4 py-3 sticky top-0 bg-panel z-10">
           <h2 className="text-base font-semibold">{title}</h2>
           <button type="button" className="btn-ghost px-2 py-1" onClick={onClose} aria-label="Zamknij">

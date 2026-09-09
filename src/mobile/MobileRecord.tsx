@@ -146,9 +146,14 @@ export function MobileDeal({ id }: { id: number }) {
               {saving ? "Zapisywanie…" : "Zapisz"}
             </button>
           ) : (
-            <button type="button" className="p-2 m-muted" onClick={() => setMenu(true)} aria-label="Menu">
-              <MIcon name="more" className="h-6 w-6" strokeWidth={3} />
-            </button>
+            <>
+              <button type="button" className="p-2 text-red-400" onClick={() => window.confirm(`Usunąć ${deal.title}? Tej operacji nie da się cofnąć.`) && deleteDeal(id).then(close)} aria-label="Usuń deal" title="Usuń deal">
+                <MIcon name="trash" className="h-6 w-6" />
+              </button>
+              <button type="button" className="p-2 m-muted" onClick={() => setMenu(true)} aria-label="Menu">
+                <MIcon name="more" className="h-6 w-6" strokeWidth={3} />
+              </button>
+            </>
           )
         }
       />

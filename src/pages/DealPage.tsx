@@ -140,6 +140,9 @@ export default function DealPage({ id: idProp }: { id?: number }) {
           <button type="button" className="btn-ghost py-1.5" onClick={copy} disabled={busy}>
             Kopiuj
           </button>
+          <button type="button" className="btn-ghost py-1.5 text-danger hover:bg-red-50" onClick={remove} disabled={busy} aria-label="Usuń deal" title="Usuń deal">
+            Usuń
+          </button>
         </div>
       </header>
 

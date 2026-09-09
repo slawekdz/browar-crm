@@ -64,6 +64,24 @@ test("deal screen: tabs Szczegóły / Oś czasu / Produkty with Bitrix sections,
   await expect(page.getByRole("heading", { name: "CRM" })).toBeVisible();
 });
 
+test("create-deal dialog and company picker stay readable inside the dark shell; deal header has delete", async ({ page }) => {
+  await login(page);
+  await page.getByRole("button", { name: "Utwórz" }).click();
+  const dialog = page.getByRole("dialog", { name: "Nowy deal" });
+  await expect(dialog.getByRole("heading", { name: "Nowy deal" })).toBeVisible();
+  const color = await dialog.getByRole("heading", { name: "Nowy deal" }).evaluate((el) => getComputedStyle(el).color);
+  expect(color).toBe("rgb(51, 51, 51)");
+  await dialog.getByRole("button", { name: "Firma" }).click();
+  const picker = page.getByRole("dialog", { name: "Firma" });
+  const row = picker.getByRole("button", { name: /Delta Hydro/ });
+  await expect(row).toBeVisible();
+  expect(await row.evaluate((el) => getComputedStyle(el).color)).toBe("rgb(51, 51, 51)");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await page.locator("article", { hasText: "Deal #4029" }).getByText("Deal #4029").click();
+  await expect(page.getByRole("button", { name: "Usuń deal" })).toBeVisible();
+});
+
 test("companies and contacts render as Bitrix cards; company screen has its tabs; tasks tab lists open activities", async ({ page }) => {
   await login(page);
   await page.getByRole("button", { name: "Firmy" }).click();
