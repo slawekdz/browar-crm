@@ -24,8 +24,9 @@ export const formatRelativeDay = (iso: string | null | undefined): string => {
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (sameDay(d, now)) return `dzisiaj, ${time.format(d)}`;
-  if (sameDay(d, yesterday)) return `wczoraj, ${time.format(d)}`;
+  const dateOnly = iso.length === 10; // begin_date carries no time, so "wczoraj, 00:00" would be misleading
+  if (sameDay(d, now)) return dateOnly ? "dzisiaj" : `dzisiaj, ${time.format(d)}`;
+  if (sameDay(d, yesterday)) return dateOnly ? "wczoraj" : `wczoraj, ${time.format(d)}`;
   return formatLong(iso);
 };
 /** Card footer: "Dzisiaj 08:29", "2 wrz", "17 paź 2025" */

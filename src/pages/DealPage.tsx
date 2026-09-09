@@ -9,6 +9,7 @@ import BxTimeline, { type TimelineEvent } from "@/components/BxTimeline";
 import { RecordLink, useCloseSlider, useOpenRecord } from "@/lib/nav";
 import { formatLong, formatDate } from "@/lib/dates";
 import { formatPln, lineTotal } from "@/lib/money";
+import { dealEvents } from "@/lib/events";
 
 /*
  * Deal card in the Bitrix24 layout: title with rename pencil, stage chevrons (same stages as the
@@ -58,30 +59,7 @@ export default function DealPage({ id: idProp }: { id?: number }) {
     if (deal) document.title = `${deal.title} · Browar Pogórza CRM`;
   }, [deal]);
 
-  const events = useMemo<TimelineEvent[]>(() => {
-    if (!deal) return [];
-    const list: TimelineEvent[] = [];
-    history.forEach((h, i) => {
-      const stage = stageByCode.get(h.stage_code);
-      if (i === 0) {
-        list.push({ key: `h${h.id}`, at: h.moved_at, title: "Deal utworzony", icon: "info", link: { to: `/deals/${deal.id}`, label: deal.title }, ownerId: h.moved_by ?? deal.owner_id });
-        return;
-      }
-      const prev = stageByCode.get(history[i - 1].stage_code);
-      const closed = stage && stage.semantic !== "open";
-      list.push({
-        key: `h${h.id}`,
-        at: h.moved_at,
-        title: closed ? "Deal zakończony" : "Zmiana etapu",
-        icon: closed ? "up" : "stage",
-        pills: closed ? [{ text: stage.name, tone: stage.semantic === "won" ? "won" : "lost" }] : undefined,
-        arrow: closed ? undefined : [prev?.name ?? "", stage?.name ?? h.stage_code],
-        ownerId: h.moved_by ?? deal.owner_id,
-      });
-    });
-    if (history.length === 0) list.push({ key: "created", at: deal.created_at, title: "Deal utworzony", icon: "info", ownerId: deal.owner_id });
-    return list;
-  }, [deal, history, stageByCode]);
+  const events = useMemo<TimelineEvent[]>(() => (deal ? dealEvents(data, deal, stageByCode) : []), [data, deal, stageByCode]);
 
   if (!deal) return <div className="p-6 text-muted">Nie ma takiego dealu.</div>;
 

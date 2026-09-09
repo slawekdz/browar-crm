@@ -3,6 +3,7 @@ import type { NewLine, Product } from "@/types";
 import { useData } from "@/store";
 import { ProductPicker } from "./Pickers";
 import { RecordLink } from "@/lib/nav";
+import { useIsMobile } from "@/lib/useMedia";
 import { dealAmount, discountTotal, formatCents, formatPln, lineTotal } from "@/lib/money";
 
 /*
@@ -18,6 +19,7 @@ const toNumber = (value: string): number => {
 
 export default function ProductGrid({ dealId, lines: saved, onError }: { dealId: number; lines: NewLine[]; onError: (m: string) => void }) {
   const { data, repo, productById, setLines } = useData();
+  const isMobile = useIsMobile();
   const [lines, setLocal] = useState<NewLine[]>(saved);
   const [picking, setPicking] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -88,7 +90,85 @@ export default function ProductGrid({ dealId, lines: saved, onError }: { dealId:
         </button>
         <span className="ml-auto text-xs text-gray-500">{saving ? "Zapisywanie…" : dirty ? "Niezapisane zmiany" : "Zapisano"}</span>
       </div>
-      <div className="rounded-xl bg-white shadow-sm overflow-x-auto scroll-thin">
+      {isMobile && (
+        <div className="space-y-2">
+          {lines.map((line, index) => {
+            const product = line.product_id ? productById.get(line.product_id) : null;
+            const img = repo.imageUrl(product?.image_path ?? null);
+            return (
+              <div key={index} className="rounded-xl bg-white p-3 shadow-sm space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  {product ? (
+                    <RecordLink to={`/products/${product.id}`} aria-label={`Otwórz ${product.name}`} className="block h-10 w-10 shrink-0 overflow-hidden rounded">
+                      {img ? <img src={img} alt="" className="h-10 w-10 object-cover" /> : <span className="flex h-10 w-10 items-center justify-center border border-dashed border-gray-300 text-gray-300">▣</span>}
+                    </RecordLink>
+                  ) : (
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-dashed border-gray-300 text-gray-300">▣</span>
+                  )}
+                  <div className="relative flex-1 min-w-0">
+                    <input
+                      className="input py-1.5"
+                      value={line.product_name}
+                      placeholder="Nazwa produktu"
+                      aria-label={`Produkt ${index + 1}`}
+                      onFocus={() => setSuggestFor(index)}
+                      onBlur={() => window.setTimeout(() => setSuggestFor((s) => (s === index ? null : s)), 150)}
+                      onChange={(e) => update(index, { product_name: e.target.value, product_id: null })}
+                    />
+                    {suggestFor === index && suggestions.length > 0 && (
+                      <ul className="absolute left-0 right-0 top-full z-20 max-h-56 overflow-y-auto rounded-lg border border-line bg-white shadow-xl">
+                        {suggestions.map((p) => (
+                          <li key={p.id}>
+                            <button type="button" className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50" onMouseDown={(e) => e.preventDefault()} onClick={() => applyProduct(index, p)}>
+                              <span>{p.name}</span>
+                              <span className="text-gray-500 tabular-nums">{formatPln(p.price)}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <button type="button" className="text-gray-300 hover:text-danger px-1" onClick={() => remove(index)} aria-label="Usuń pozycję">
+                    ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <label className="block">
+                    <span className="label">Cena zł</span>
+                    <input className="input py-1.5" type="number" inputMode="decimal" min={0} step="0.01" value={line.price} aria-label="Cena" onChange={(e) => update(index, { price: toNumber(e.target.value) })} />
+                  </label>
+                  <label className="block">
+                    <span className="label">Ilość szt.</span>
+                    <input className="input py-1.5" type="number" inputMode="decimal" min={0} step="1" value={line.quantity} aria-label="Ilość" onChange={(e) => update(index, { quantity: toNumber(e.target.value) })} />
+                  </label>
+                  <label className="block">
+                    <span className="label">Rabat %</span>
+                    <input className="input py-1.5" type="number" inputMode="decimal" min={0} max={100} step="1" value={line.discount_rate} aria-label="Rabat %" onChange={(e) => update(index, { discount_rate: toNumber(e.target.value) })} />
+                  </label>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">
+                    {index + 1}. {formatCents(line.price)} zł × {line.quantity}
+                  </span>
+                  <span className="font-semibold tabular-nums">{formatCents(lineTotal(line))} zł</span>
+                </div>
+              </div>
+            );
+          })}
+          {lines.length === 0 && <div className="rounded-xl bg-white p-4 text-center text-sm text-gray-500 shadow-sm">Brak pozycji. Dodaj produkt albo wybierz z katalogu.</div>}
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
+              <dt className="text-gray-500">Razem bez rabatów</dt>
+              <dd className="text-right tabular-nums">{formatPln(gross)}</dd>
+              <dt className="text-gray-500">Kwota rabatu</dt>
+              <dd className="text-right tabular-nums text-success">{formatPln(discount)}</dd>
+              <dt className="border-t border-line pt-1 font-semibold">Kwota całkowita</dt>
+              <dd className="border-t border-line pt-1 text-right font-semibold tabular-nums">{formatPln(total)}</dd>
+            </dl>
+          </div>
+        </div>
+      )}
+      <div className={`rounded-xl bg-white shadow-sm overflow-x-auto scroll-thin ${isMobile ? "hidden" : ""}`}>
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-line text-[11px] uppercase tracking-wide text-gray-500">

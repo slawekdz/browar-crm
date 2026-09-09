@@ -16,7 +16,7 @@ function Column({ stage, deals, first, onAdd }: { stage: Stage; deals: Deal[]; f
   const [limit, setLimit] = useState(PAGE);
   const total = deals.reduce((sum, d) => sum + d.amount, 0);
   return (
-    <section className="group flex min-w-[250px] sm:min-w-[180px] flex-1 basis-0 flex-col snap-start border-r border-dotted border-white/25 px-1.5 last:border-r-0" aria-label={stage.name}>
+    <section data-stage={stage.code} className="group flex min-w-[88vw] sm:min-w-[180px] flex-1 basis-0 flex-col snap-start snap-always border-r border-dotted border-white/25 px-1.5 last:border-r-0" aria-label={stage.name}>
       <header className="flex h-[34px] items-center justify-between rounded-full px-3 text-[13px] font-bold text-white" style={{ background: stage.color }} title={stage.name}>
         <span className="truncate">{stage.name}</span>
         <span className="ml-2 shrink-0 font-normal text-white/85">{deals.length}</span>
@@ -83,21 +83,47 @@ export default function Kanban({ stages, closingStages, deals, onMove, onAdd }: 
     onMove(deal.id, target);
   };
   const closingHidden = closingStages.filter((s) => !stages.some((x) => x.code === s.code));
+  const [current, setCurrent] = useState(stages[0]?.code);
+  useEffect(() => {
+    // phone: track which column is in view so the stage chips highlight it
+    const el = scroller.current;
+    if (!el) return;
+    const onScroll = () => {
+      const sections = Array.from(el.querySelectorAll<HTMLElement>("section[data-stage]"));
+      const left = el.scrollLeft + el.clientWidth / 2;
+      const hit = sections.find((s) => s.offsetLeft <= left && s.offsetLeft + s.offsetWidth > left);
+      if (hit?.dataset.stage) setCurrent(hit.dataset.stage);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [stages]);
+  const jumpTo = (code: string) => {
+    const el = scroller.current?.querySelector<HTMLElement>(`section[data-stage="${code}"]`);
+    el?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+    setCurrent(code);
+  };
 
   return (
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setActive(null)}>
       <div className="relative flex h-full min-h-0 flex-col">
+        <div className="scroll-x flex gap-1.5 overflow-x-auto px-3 pb-2 sm:hidden" role="tablist" aria-label="Etapy">
+          {stages.map((stage) => (
+            <button key={stage.code} type="button" role="tab" aria-selected={current === stage.code} className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-white transition ${current === stage.code ? "ring-2 ring-white" : "opacity-80"}`} style={{ background: stage.color }} onClick={() => jumpTo(stage.code)}>
+              {stage.name} <span className="font-normal opacity-90">{byStage.get(stage.code)?.length ?? 0}</span>
+            </button>
+          ))}
+        </div>
         {edges.left && (
-          <button type="button" className="absolute left-2 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: -400, behavior: "smooth" })} aria-label="Przewiń w lewo">
+          <button type="button" className="absolute left-2 top-1/2 z-20 hidden sm:flex -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: -400, behavior: "smooth" })} aria-label="Przewiń w lewo">
             ‹
           </button>
         )}
         {edges.right && (
-          <button type="button" className="absolute right-2 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: 400, behavior: "smooth" })} aria-label="Przewiń w prawo">
+          <button type="button" className="absolute right-2 top-1/2 z-20 hidden sm:flex -translate-y-1/2 h-10 w-10 items-center justify-center rounded-full bg-white/30 text-xl text-white backdrop-blur hover:bg-white/50" onClick={() => scroller.current?.scrollBy({ left: 400, behavior: "smooth" })} aria-label="Przewiń w prawo">
             ›
           </button>
         )}
-        <div ref={scroller} className="scroll-x flex min-h-0 flex-1 snap-x overflow-x-auto px-2 pb-2">
+        <div ref={scroller} className="scroll-x flex min-h-0 flex-1 snap-x snap-mandatory sm:snap-none overflow-x-auto px-2 pb-2">
           {stages.map((stage, i) => (
             <Column key={stage.code} stage={stage} deals={byStage.get(stage.code) ?? []} first={i === 0} onAdd={onAdd} />
           ))}

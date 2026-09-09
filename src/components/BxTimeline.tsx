@@ -259,12 +259,18 @@ export default function BxTimeline({ entity, entityId, events, taskHint }: { ent
                 data-composer
               />
               {composer === "task" && (
-                <label className="flex shrink-0 items-center gap-1 text-xs text-gray-500" title="Termin">
+                <label className="hidden sm:flex shrink-0 items-center gap-1 text-xs text-gray-500" title="Termin">
                   akcje ▾
                   <input type="date" className="w-32 rounded border border-gray-200 px-1 py-0.5 text-xs text-gray-700" value={deadline} onChange={(e) => setDeadline(e.target.value)} aria-label="Termin" />
                 </label>
               )}
             </div>
+            {composer === "task" && (
+              <label className="flex sm:hidden items-center gap-2 text-xs text-gray-500">
+                Termin
+                <input type="date" className="flex-1 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-700" value={deadline} onChange={(e) => setDeadline(e.target.value)} aria-label="Termin (telefon)" />
+              </label>
+            )}
             <button type="submit" className="rounded-xl bg-[#2fc6f6] px-4 py-2 text-sm font-medium text-white disabled:opacity-40" disabled={!draft.trim()}>
               {composer === "task" ? "Zaplanuj" : "Wyślij"}
             </button>

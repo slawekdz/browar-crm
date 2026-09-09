@@ -117,7 +117,25 @@ export default function Companies() {
         <div className="text-xs text-white/80">{list.length} firm</div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
+        <ul className="sm:hidden space-y-2">
+          {list.map((c) => {
+            const s = stats.get(c.id);
+            return (
+              <li key={c.id}>
+                <button type="button" className="w-full rounded-xl bg-white p-3 text-left shadow-sm active:bg-gray-50" onClick={() => openRecord(`/companies/${c.id}`)}>
+                  <div className="font-medium text-link">{c.name}</div>
+                  <div className="mt-0.5 text-xs text-gray-500">{[c.nip && `NIP ${c.nip}`, c.phone, c.email].filter(Boolean).join(" · ")}</div>
+                  <div className="mt-1 flex items-center justify-between text-xs text-gray-600">
+                    <span>{s ? `${s.count} dealów · ostatni ${formatNumeric(s.last)}` : "brak dealów"}</span>
+                    {s && s.won > 0 && <Money value={s.won} className="font-medium text-ink" />}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+          {list.length === 0 && <li className="rounded-xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">Brak firm</li>}
+        </ul>
+        <div className="hidden sm:block rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
           <table className="w-full min-w-[760px]">
             <thead className="sticky top-0 bg-white border-b border-line">
               <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-gray-500">

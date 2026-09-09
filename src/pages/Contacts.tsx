@@ -89,7 +89,42 @@ export default function Contacts() {
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
+        <ul className="sm:hidden space-y-2">
+          {list.map((c) => (
+            <li key={c.id} className="rounded-xl bg-white p-3 shadow-sm text-sm">
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">
+                    {c.first_name} {c.last_name ?? ""}
+                    {c.position && <span className="font-normal text-gray-500"> · {c.position}</span>}
+                  </div>
+                  {c.company_id && (
+                    <RecordLink to={`/companies/${c.company_id}`} className="link text-xs">
+                      {companyById.get(c.company_id)?.name}
+                    </RecordLink>
+                  )}
+                </div>
+                <button type="button" className="text-xs text-gray-500" onClick={() => setEditing(c)}>
+                  Edytuj
+                </button>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {c.phone && (
+                  <a className="rounded-full bg-[#e8f7fd] px-3 py-1 text-xs text-link" href={`tel:${c.phone}`}>
+                    ☎ {c.phone}
+                  </a>
+                )}
+                {c.email && (
+                  <a className="rounded-full bg-[#e8f7fd] px-3 py-1 text-xs text-link" href={`mailto:${c.email}`}>
+                    ✉ {c.email}
+                  </a>
+                )}
+              </div>
+            </li>
+          ))}
+          {list.length === 0 && <li className="rounded-xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">Brak kontaktów</li>}
+        </ul>
+        <div className="hidden sm:block rounded-xl bg-white shadow-sm text-sm overflow-x-auto scroll-thin">
           <table className="w-full min-w-[700px]">
             <thead className="sticky top-0 bg-white border-b border-line">
               <tr className="text-left text-[11px] font-medium uppercase tracking-wide text-gray-500">

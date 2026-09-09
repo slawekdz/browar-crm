@@ -11,6 +11,7 @@ import { useCloseSlider } from "@/lib/nav";
 import { formatLong, formatDateTime } from "@/lib/dates";
 import { formatPln } from "@/lib/money";
 import { matches } from "@/components/ui";
+import { companyEvents } from "@/lib/events";
 
 /*
  * Company card in the Bitrix24 layout: title with pencil, tabs Ogólne / Deale / Kontakty / Historia,
@@ -49,20 +50,7 @@ export default function CompanyPage({ id: idProp }: { id?: number }) {
     if (company) document.title = `${company.name} · Browar Pogórza CRM`;
   }, [company]);
 
-  const events = useMemo<TimelineEvent[]>(() => {
-    if (!company) return [];
-    const dealById = new Map(deals.map((d) => [d.id, d]));
-    const list: TimelineEvent[] = [{ key: "company", at: company.created_at, title: "Firma utworzona", icon: "info", link: { to: `/companies/${company.id}`, label: company.name }, ownerId: company.owner_id }];
-    for (const d of deals)
-      list.push({ key: `c${d.id}`, at: d.created_at, title: "Deal utworzony", icon: "deal", pills: [{ text: stageByCode.get(d.stage_code)?.name ?? d.stage_code, tone: "grey" }], link: { to: `/deals/${d.id}`, label: d.title }, suffix: formatPln(d.amount), ownerId: d.owner_id });
-    for (const h of data.stage_history) {
-      const deal = dealById.get(h.deal_id);
-      const stage = stageByCode.get(h.stage_code);
-      if (!deal || !stage || stage.semantic === "open") continue;
-      list.push({ key: `h${h.id}`, at: h.moved_at, title: "Deal zakończony", icon: "up", pills: [{ text: stage.name, tone: stage.semantic === "won" ? "won" : "lost" }], link: { to: `/deals/${deal.id}`, label: deal.title }, suffix: formatPln(deal.amount), ownerId: h.moved_by ?? deal.owner_id });
-    }
-    return list;
-  }, [company, deals, data.stage_history, stageByCode]);
+  const events = useMemo<TimelineEvent[]>(() => (company ? companyEvents(data, company, stageByCode) : []), [data, company, stageByCode]);
 
   if (!company) return <div className="p-6 text-muted">Nie ma takiej firmy.</div>;
 

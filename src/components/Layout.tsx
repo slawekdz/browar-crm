@@ -10,6 +10,8 @@ import Settings from "@/pages/Settings";
 import DealPage from "@/pages/DealPage";
 import CompanyPage from "@/pages/CompanyPage";
 import ProductPage from "@/pages/ProductPage";
+import MobileShell from "@/mobile/MobileShell";
+import { useIsMobile } from "@/lib/useMedia";
 
 /*
  * Bitrix chrome: indigo sidebar (modules) + indigo top bar (CRM sections) + wallpaper canvas.
@@ -91,6 +93,12 @@ function Slider({ path, top, onClose }: { path: string; top: boolean; onClose: (
 }
 
 export default function Layout() {
+  const isMobile = useIsMobile();
+  if (isMobile) return <MobileShell />;
+  return <DesktopLayout />;
+}
+
+function DesktopLayout() {
   const { repo, auth } = useStore();
   const location = useLocation();
   const stack = useSliderStack();
