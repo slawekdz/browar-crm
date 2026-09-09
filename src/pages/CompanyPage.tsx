@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useData } from "@/store";
 import { Row, Section, Toast } from "@/components/ui";
@@ -83,7 +83,7 @@ export default function CompanyPage({ id: idProp }: { id?: number }) {
   const filteredDeals = deals.filter((d) => matches(dealQuery, d.title, `#${d.id}`, d.comment));
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 space-y-4 text-ink">
+    <div className="mx-auto max-w-7xl px-4 py-4 space-y-4 text-ink overflow-x-hidden">
       <header className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 mr-auto">
           <h1 className="text-[22px] font-semibold flex items-center gap-2 flex-wrap">
@@ -117,7 +117,7 @@ export default function CompanyPage({ id: idProp }: { id?: number }) {
       </nav>
 
       {tab === "general" && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start [&>*]:min-w-0">
           <Section title="O firmie" onEdit={() => setEditing(true)}>
             <Row label={`Przychód ${year}`}>
               <span className="text-[28px] font-light">{formatPln(wonYear)}</span>

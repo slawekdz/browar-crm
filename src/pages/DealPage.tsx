@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useData } from "@/store";
 import { Avatar, Row, Section, Toast } from "@/components/ui";
@@ -128,7 +128,7 @@ export default function DealPage({ id: idProp }: { id?: number }) {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-4 space-y-4 text-ink">
+    <div className="mx-auto max-w-7xl px-4 py-4 space-y-4 text-ink overflow-x-hidden">
       <header className="flex flex-wrap items-center gap-3">
         {renaming ? (
           <form
@@ -176,7 +176,7 @@ export default function DealPage({ id: idProp }: { id?: number }) {
       </nav>
 
       {tab === "general" && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start [&>*]:min-w-0">
           <div className="space-y-4 min-w-0 break-words">
             <Section title="Więcej" onEdit={() => setEditingMore((v) => !v)} editLabel={editingMore ? "gotowe" : "edytuj"}>
               <Row label="Typ dealu">Sprzedaż</Row>
