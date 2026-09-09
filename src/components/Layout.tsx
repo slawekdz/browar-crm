@@ -9,6 +9,7 @@ import Contacts from "@/pages/Contacts";
 import Settings from "@/pages/Settings";
 import DealPage from "@/pages/DealPage";
 import CompanyPage from "@/pages/CompanyPage";
+import ProductPage from "@/pages/ProductPage";
 
 /*
  * Bitrix chrome: indigo sidebar (modules) + indigo top bar (CRM sections) + wallpaper canvas.
@@ -43,7 +44,9 @@ function RecordView({ path }: { path: string }) {
   const m = RECORD_RE.exec(path);
   if (!m) return null;
   const id = Number(m[2]);
-  return m[1] === "deals" ? <DealPage id={id} /> : <CompanyPage id={id} />;
+  if (m[1] === "deals") return <DealPage id={id} />;
+  if (m[1] === "products") return <ProductPage id={id} />;
+  return <CompanyPage id={id} />;
 }
 
 function Slider({ path, top, onClose }: { path: string; top: boolean; onClose: () => void }) {

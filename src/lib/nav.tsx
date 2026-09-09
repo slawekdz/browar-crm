@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate, type LinkProps } from "react-router-dom
  * inside another slider pushes the current record path onto location.state.stack.
  */
 
-export const RECORD_RE = /^\/(deals|companies)\/(\d+)$/;
+export const RECORD_RE = /^\/(deals|companies|products)\/(\d+)$/;
 export const isRecordPath = (path: string): boolean => RECORD_RE.test(path);
 
 export interface SliderState {

@@ -74,6 +74,34 @@ test("creates a deal with catalog lines and it lands on the board", async ({ pag
   await expect(page.getByRole("region", { name: "Zamówienie" })).toContainText("Deal #4032");
 });
 
+test("products open as sliders from a deal, from the product grid and from the catalog", async ({ page }) => {
+  await login(page);
+  await page.getByRole("region", { name: "Do dostarczenia" }).getByText("Deal #4031").click();
+  const deal = page.getByRole("dialog").last();
+  await expect(deal.getByRole("heading", { name: "Deal #4031" })).toBeVisible();
+  await deal.getByRole("link", { name: "Wheat Valley" }).click();
+  const product = page.getByRole("dialog").last();
+  await expect(product.getByRole("heading", { name: "Wheat Valley" })).toBeVisible();
+  await expect(product.getByText("O produkcie")).toBeVisible();
+  await expect(product.getByText("Sprzedano łącznie")).toBeVisible();
+  await expect(product.getByRole("link", { name: "Deal #4031" }).first()).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog").last().getByRole("heading", { name: "Deal #4031" })).toBeVisible();
+  // from the editable product grid
+  await page.getByRole("dialog").last().getByRole("button", { name: "Produkty", exact: true }).click();
+  await page.getByRole("dialog").last().getByRole("link", { name: "Otwórz Hills Pils" }).click();
+  await expect(page.getByRole("dialog").last().getByRole("heading", { name: "Hills Pils" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog").last().getByRole("heading", { name: "Deal #4031" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  // from the catalog tiles
+  await page.goto("/#/products");
+  await page.getByRole("button", { name: /^Hills Pils Hills Pils Piwo butelka/ }).click();
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Hills Pils" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("5,90 zł").first()).toBeVisible();
+});
+
 test("list view: grid with stage bars, selection, row menu and paging", async ({ page }) => {
   await login(page);
   await page.getByRole("button", { name: "Lista" }).click();

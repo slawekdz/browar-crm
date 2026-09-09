@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NewLine, Product } from "@/types";
 import { useData } from "@/store";
 import { ProductPicker } from "./Pickers";
+import { RecordLink } from "@/lib/nav";
 import { dealAmount, discountTotal, formatCents, formatPln, lineTotal } from "@/lib/money";
 
 /*
@@ -144,7 +145,15 @@ export default function ProductGrid({ dealId, lines: saved, onError }: { dealId:
                     )}
                   </td>
                   <td className="px-2 py-2">
-                    {img ? <img src={img} alt="" className="h-9 w-9 rounded object-cover" loading="lazy" /> : <span className="flex h-9 w-9 items-center justify-center rounded border border-dashed border-gray-300 text-gray-300">▣</span>}
+                    {product ? (
+                      <RecordLink to={`/products/${product.id}`} title={`Otwórz ${product.name}`} aria-label={`Otwórz ${product.name}`} className="block h-9 w-9 overflow-hidden rounded hover:ring-2 hover:ring-brand">
+                        {img ? <img src={img} alt="" className="h-9 w-9 object-cover" loading="lazy" /> : <span className="flex h-9 w-9 items-center justify-center border border-dashed border-gray-300 text-gray-300">▣</span>}
+                      </RecordLink>
+                    ) : (
+                      <span className="flex h-9 w-9 items-center justify-center rounded border border-dashed border-gray-300 text-gray-300" title="Pozycja spoza katalogu">
+                        ▣
+                      </span>
+                    )}
                   </td>
                   <td className="px-2 py-2">
                     <span className="flex items-center gap-1">

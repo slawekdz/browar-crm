@@ -267,7 +267,15 @@ export default function DealPage({ id: idProp }: { id?: number }) {
                       <div key={l.id} className="flex items-center gap-3 px-2 py-1.5">
                         {img ? <img src={img} alt="" className="h-8 w-8 rounded object-cover bg-white" loading="lazy" /> : <span className="flex h-8 w-8 items-center justify-center rounded bg-white text-gray-300">▣</span>}
                         <div className="min-w-0 flex-1">
-                          <div className="text-link truncate">{l.product_name}</div>
+                          {product ? (
+                            <RecordLink to={`/products/${product.id}`} className="block truncate text-link hover:underline">
+                              {l.product_name}
+                            </RecordLink>
+                          ) : (
+                            <div className="truncate text-gray-700" title="Pozycja spoza katalogu">
+                              {l.product_name}
+                            </div>
+                          )}
                           <div className="text-[12px] text-gray-600">{formatPln(lineTotal(l))}</div>
                         </div>
                       </div>

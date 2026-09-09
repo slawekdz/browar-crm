@@ -30,6 +30,7 @@ function Shell() {
         <Route path="companies" element={<Companies />} />
         <Route path="companies/:id" element={null} />
         <Route path="products" element={<Products />} />
+        <Route path="products/:id" element={null} />
         <Route path="contacts" element={<Contacts />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

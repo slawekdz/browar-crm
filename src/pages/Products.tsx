@@ -2,11 +2,12 @@ import { useMemo, useState, type FormEvent } from "react";
 import type { NewProduct, Product } from "@/types";
 import { useData } from "@/store";
 import { Field, Modal, Money, Toast, matches } from "@/components/ui";
+import { useOpenRecord } from "@/lib/nav";
 
 const GROUPS = ["Piwo butelka", "Piwo PET/KEG", "Kawa", "Gadżety", "Usługi"];
 const emptyProduct = (): NewProduct => ({ name: "", slug: null, price: 0, unit: "szt.", active: true, sort: 500, group_name: GROUPS[0], image_path: null });
 
-function ProductForm({ open, onClose, initial, onSubmit, onImage }: { open: boolean; onClose: () => void; initial: NewProduct | Product; onSubmit: (v: NewProduct) => Promise<void>; onImage?: (file: File) => Promise<void> }) {
+export function ProductForm({ open, onClose, initial, onSubmit, onImage }: { open: boolean; onClose: () => void; initial: NewProduct | Product; onSubmit: (v: NewProduct) => Promise<void>; onImage?: (file: File) => Promise<void> }) {
   const { repo } = useData();
   const [values, setValues] = useState<NewProduct>({ ...emptyProduct(), ...initial });
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ function ProductForm({ open, onClose, initial, onSubmit, onImage }: { open: bool
 
 export default function Products() {
   const { data, repo, createProduct, updateProduct, uploadProductImage } = useData();
+  const openRecord = useOpenRecord();
   const [q, setQ] = useState("");
   const [group, setGroup] = useState("");
   const [showInactive, setShowInactive] = useState(false);
@@ -122,7 +124,7 @@ export default function Products() {
           {list.map((p) => {
             const img = repo.imageUrl(p.image_path);
             return (
-              <button key={p.id} type="button" className={`card overflow-hidden text-left hover:shadow-md ${p.active ? "" : "opacity-50"}`} onClick={() => setEditing(p)}>
+              <button key={p.id} type="button" className={`card overflow-hidden text-left hover:shadow-md ${p.active ? "" : "opacity-50"}`} onClick={() => openRecord(`/products/${p.id}`)}>
                 {img ? <img src={img} alt={p.name} className="aspect-square w-full object-cover" loading="lazy" /> : <div className="aspect-square w-full bg-panel-2 flex items-center justify-center text-muted text-xs">brak zdjęcia</div>}
                 <div className="p-3">
                   <div className="text-sm font-medium leading-tight">{p.name}</div>
@@ -143,8 +145,10 @@ export default function Products() {
           onClose={() => setEditing(null)}
           initial={editing === "new" ? emptyProduct() : editing}
           onSubmit={async (v) => {
-            if (editing === "new") await createProduct(v);
-            else await updateProduct(editing.id, v);
+            if (editing === "new") {
+              const row = await createProduct(v);
+              openRecord(`/products/${row.id}`);
+            } else await updateProduct(editing.id, v);
           }}
           onImage={editing === "new" ? undefined : (file) => uploadProductImage(editing.id, file)}
         />
