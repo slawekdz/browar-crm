@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // The phone layout mirrors the Bitrix24 mobile app; these run only in the "mobile" project.
 test.skip(({ isMobile }) => !isMobile, "phone layout only");

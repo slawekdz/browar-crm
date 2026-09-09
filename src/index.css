@@ -46,7 +46,11 @@ body { @apply bg-canvas text-ink antialiased; overscroll-behavior-y: none; font-
 
 .scroll-x { -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
 .scroll-thin { scrollbar-width: thin; scrollbar-color: rgba(0,0,0,0.25) transparent; }
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+/* System bars / notch: env() when the WebView passes insets through, Capacitor's injected variables otherwise. */
+.safe-top { padding-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px)); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px)); }
+.m-fab-pos { bottom: calc(6rem + max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px))); }
+.m-dock-pos { bottom: calc(6rem + max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px))); }
 
 /* Bitrix24 mobile app look: near-black canvas, graphite cards, uppercase 11 px labels, blue links. */
 .bxm { --m-bg: #0f1218; --m-card: #1b1f28; --m-card-2: #242a35; --m-line: #2c3340; --m-text: #eef1f5; --m-muted: #9aa3b2; --m-link: #3ea0ea; --m-accent: #4fd1e0; --m-fab: #2a5b9c; background: var(--m-bg); color: var(--m-text); }

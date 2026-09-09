@@ -1,4 +1,4 @@
-﻿import { test, type Page } from "@playwright/test";
+import { test, type Page } from "@playwright/test";
 
 // Visual smoke: writes screenshots to test-results/screens for a manual look. Never asserts.
 const login = async (page: Page) => {

@@ -198,7 +198,7 @@ export default function MobileTimeline({ entity, entityId, events, hint, compose
         </div>
       ))}
       {!composer && (
-        <button type="button" className="fixed bottom-24 right-4 z-40 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-xl" style={{ background: "var(--m-fab)" }} onClick={() => setComposer("comment")} aria-label="Dodaj wpis">
+        <button type="button" className="m-fab-pos fixed right-4 z-40 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-xl" style={{ background: "var(--m-fab)" }} onClick={() => setComposer("comment")} aria-label="Dodaj wpis">
           <MIcon name="plus" className="h-7 w-7" strokeWidth={2.2} />
         </button>
       )}

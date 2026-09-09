@@ -1,4 +1,4 @@
-﻿import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 // Phones get the Bitrix24-mobile layout, covered by mobile.spec.ts.
 test.skip(({ isMobile }) => !!isMobile, "desktop layout only");

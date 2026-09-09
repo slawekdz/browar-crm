@@ -45,7 +45,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null;
   return (
     <div className="bxm fixed inset-0 z-[90] flex items-end bg-black/60 fade-in" onMouseDown={onClose} role="dialog" aria-modal="true" aria-label={title ?? "Menu"} style={{ background: "rgba(0,0,0,.6)" }}>
-      <div className="w-full rounded-t-2xl p-3 pb-6 shadow-2xl slider-up" style={{ background: "var(--m-card)" }} onMouseDown={(e) => e.stopPropagation()}>
+      <div className="safe-bottom w-full rounded-t-2xl p-3 shadow-2xl slider-up" style={{ background: "var(--m-card)", paddingBottom: "calc(1.5rem + max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px)))" }} onMouseDown={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/30" />
         {title && <div className="px-2 pb-2 text-base font-semibold">{title}</div>}
         {children}
@@ -100,7 +100,7 @@ export function IconRail({ count, phone, email, onTimeline }: { count: number; p
 
 export function Fab({ onClick, label = "Utwórz" }: { onClick: () => void; label?: string }) {
   return (
-    <button type="button" className="fixed bottom-24 right-4 z-40 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-xl" style={{ background: "var(--m-fab)" }} onClick={onClick} aria-label={label}>
+    <button type="button" className="m-fab-pos fixed right-4 z-40 flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-xl" style={{ background: "var(--m-fab)" }} onClick={onClick} aria-label={label}>
       <MIcon name="plus" className="h-7 w-7" strokeWidth={2.2} />
     </button>
   );

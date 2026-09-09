@@ -25,7 +25,7 @@ const TYPE_LABEL: Record<string, string> = { CUSTOMER: "Klient", SUPPLIER: "Dost
 
 function Header({ badge, color, title, subtitle, onClose, right }: { badge: string; color: string; title: string; subtitle: string; onClose: () => void; right: ReactNode }) {
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 px-3 py-3" style={{ background: "var(--m-bg)" }}>
+    <header className="safe-top sticky top-0 z-30 flex items-center gap-3 px-3 py-3" style={{ background: "var(--m-bg)" }}>
       <button type="button" className="p-2" onClick={onClose} aria-label="Zamknij">
         <MIcon name="down" className="h-7 w-7" strokeWidth={2.2} />
       </button>
@@ -267,7 +267,7 @@ export function MobileDeal({ id }: { id: number }) {
       {/* wrap in a thunk: React would otherwise treat the passed function as a state updater */}
       {tab === "products" && <MobileDealProducts dealId={id} saved={saved as NewLine[]} onDirty={(dirty, fn) => setSaveFn(() => (dirty ? fn : null))} />}
 
-      <div className="pointer-events-none fixed bottom-24 left-1/2 z-30 -translate-x-1/2">
+      <div className="m-dock-pos pointer-events-none fixed left-1/2 z-30 -translate-x-1/2">
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-[#3ea0ea] px-3 py-2" style={{ background: "var(--m-card)" }}>
           <a href={company?.phone ? `tel:${company.phone}` : undefined} className={`m-round h-9 w-9 ${company?.phone ? "m-round-on" : "opacity-40"}`} aria-label="Zadzwoń">
             <MIcon name="phone" className="h-4.5 w-4.5" />

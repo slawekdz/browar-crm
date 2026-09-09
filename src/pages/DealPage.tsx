@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useData } from "@/store";
 import { Avatar, Row, Section, Toast } from "@/components/ui";

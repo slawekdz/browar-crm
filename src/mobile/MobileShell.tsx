@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useStore } from "@/store";
 import { RECORD_RE, isRecordPath } from "@/lib/nav";
@@ -12,6 +12,8 @@ import { CompanyForm, emptyCompany } from "@/pages/Companies";
 import { ContactForm, emptyContact } from "@/pages/Contacts";
 import { Fab, MIcon } from "./ui";
 import { useOpenRecord } from "@/lib/nav";
+import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 
 /*
  * Bitrix24 mobile shell: "CRM" header with filter/search/⋯, entity pills (Deale / Kontakty / Firmy /
@@ -42,10 +44,56 @@ export default function MobileShell() {
     if (!isRecord) document.title = "CRM · Browar Pogórza";
   }, [isRecord]);
 
+  // Dark canvas behind the status bar / overscroll while the phone layout is active.
+  useEffect(() => {
+    const html = document.documentElement;
+    const prev = [html.style.background, document.body.style.background];
+    html.style.background = "#0f1218";
+    document.body.style.background = "#0f1218";
+    return () => {
+      html.style.background = prev[0];
+      document.body.style.background = prev[1];
+    };
+  }, []);
+
+  // Android back gesture / button: close the record, else return to the deals list, else leave the app.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let handle: { remove: () => Promise<void> } | null = null;
+    App.addListener("backButton", () => {
+      const current = window.location.hash.replace(/^#/, "") || "/";
+      const pathOnly = current.split("?")[0];
+      if (isRecordPath(pathOnly)) navigate(-1);
+      else if (pathOnly !== "/") navigate("/");
+      else App.minimizeApp();
+    }).then((h) => (handle = h));
+    return () => {
+      handle?.remove();
+    };
+  }, [navigate]);
+
+  // Swipe from the left edge closes the record, like the system back gesture in the Bitrix app.
+  const swipe = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onSwipeStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipe.current = t.clientX < 28 ? { x: t.clientX, y: t.clientY, t: Date.now() } : null;
+  };
+  const onSwipeEnd = (e: React.TouchEvent) => {
+    const start = swipe.current;
+    swipe.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    if (t.clientX - start.x > 90 && Math.abs(t.clientY - start.y) < 80 && Date.now() - start.t < 700) navigate(-1);
+  };
+
   if (isRecord) {
     const m = RECORD_RE.exec(path)!;
     const id = Number(m[2]);
-    return <div className="bxm min-h-full">{m[1] === "deals" ? <MobileDeal id={id} /> : m[1] === "companies" ? <MobileCompany id={id} /> : <MobileProduct id={id} />}</div>;
+    return (
+      <div className="bxm min-h-full" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+        {m[1] === "deals" ? <MobileDeal id={id} /> : m[1] === "companies" ? <MobileCompany id={id} /> : <MobileProduct id={id} />}
+      </div>
+    );
   }
 
   const section: Section | "/tasks" | "/settings" = path === "/settings" ? "/settings" : path === "/tasks" ? "/tasks" : (PILLS.find(([p]) => p === path)?.[0] ?? "/");
@@ -53,7 +101,7 @@ export default function MobileShell() {
 
   return (
     <div className="bxm flex min-h-full flex-col">
-      <header className="sticky top-0 z-30" style={{ background: "var(--m-bg)" }}>
+      <header className="safe-top sticky top-0 z-30" style={{ background: "var(--m-bg)" }}>
         <div className="flex items-center gap-2 px-4 pt-3 pb-2">
           <h1 className="mr-auto text-[26px] font-semibold">{section === "/settings" ? "Menu" : section === "/tasks" ? "Zadania" : "CRM"}</h1>
           {inCrm && (
@@ -102,7 +150,7 @@ export default function MobileShell() {
 
       {inCrm && section !== "/products" && <Fab onClick={() => setCreating(section as Section)} />}
 
-      <nav className="fixed bottom-0 inset-x-0 z-40 flex justify-around border-t border-[#2c3340] pb-[env(safe-area-inset-bottom)]" style={{ background: "#12151c" }}>
+      <nav className="safe-bottom fixed bottom-0 inset-x-0 z-40 flex justify-around border-t border-[#2c3340]" style={{ background: "#12151c" }}>
         {(
           [
             ["/", "CRM", "funnel"],
